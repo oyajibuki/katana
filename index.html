@@ -4,62 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Katana</title>
-    <!-- Tailwind CSS (装飾用) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 必須のレイアウト用CSS (Tailwindが遅れても崩れないように設定) */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #020617; font-family: 'Segoe UI', sans-serif; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none; }
         canvas { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        #gameCanvas { z-index: 10; background: #0f172a; }
+        #gameCanvas { z-index: 10; background: #1c3a1c; }
         #confettiCanvas { z-index: 150; pointer-events: none; }
 
-        /* スタート画面 */
-        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); z-index: 300; pointer-events: auto; }
-        #title-text { font-size: clamp(60px, 15vw, 100px); font-weight: 900; font-style: italic; color: #fde047; text-shadow: 0 0 20px #dc2626; margin: 0 0 10px 0; letter-spacing: 5px; text-transform: uppercase; }
-        #subtitle-text { color: #fecaca; font-size: clamp(16px, 4vw, 24px); font-weight: bold; letter-spacing: 0.4em; margin-bottom: 60px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        #start-btn { padding: 20px 60px; font-size: 24px; font-weight: 900; color: white; background: linear-gradient(90deg, #dc2626, #991b1b); border: 2px solid #fca5a5; border-radius: 50px; cursor: pointer; box-shadow: 0 0 30px rgba(220,38,38,0.6); transition: transform 0.1s, filter 0.1s; }
+        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(5,10,5,0.86) 0%, rgba(5,10,5,0.06) 28%, rgba(5,10,5,0.06) 68%, rgba(5,10,5,0.93) 100%); z-index: 300; pointer-events: auto; padding: 42px 20px 58px; box-sizing: border-box; }
+        #title-text { font-size: clamp(50px, 11vw, 88px); font-weight: 900; font-style: italic; color: #f8fafc; text-shadow: 0 0 35px #3b82f6, 0 0 80px #1e40af, 0 3px 8px rgba(0,0,0,0.95); margin: 0 0 6px 0; letter-spacing: 10px; text-transform: uppercase; }
+        #subtitle-text { color: #93c5fd; font-size: clamp(13px, 2.5vw, 18px); font-weight: bold; letter-spacing: 0.55em; margin: 0; text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
+        #start-btn { padding: 20px 60px; font-size: 24px; font-weight: 900; color: white; background: linear-gradient(90deg, #1d4ed8, #1e3a8a); border: 2px solid #93c5fd; border-radius: 50px; cursor: pointer; box-shadow: 0 0 30px rgba(59,130,246,0.6); transition: transform 0.1s, filter 0.1s; }
         #start-btn:active { transform: scale(0.95); filter: brightness(0.8); }
 
-        /* ゲーム内UI */
         #ui { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; z-index: 50; display: none; pointer-events: none; box-sizing: border-box; }
         .ui-header { display: flex; justify-content: space-between; align-items: flex-end; color: white; }
         .label { font-size: 12px; font-weight: bold; opacity: 0.6; letter-spacing: 1px; }
         .val-text { font-size: 36px; font-weight: 900; }
         .val-level { font-style: italic; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .val-blade { color: #22d3ee; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .exp-bar { width: 100%; height: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 0 10px rgba(0,0,0,0.5); overflow: hidden; }
-        #exp-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #0ea5e9, #6366f1); transition: width 0.2s; }
+        .val-blade { color: #93c5fd; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .exp-bar { width: 100%; height: 12px; background: rgba(0,0,0,0.5); border-radius: 6px; margin-top: 8px; border: 1px solid rgba(255,255,255,0.2); overflow: hidden; }
+        #exp-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #1d4ed8, #7c3aed); transition: width 0.2s; }
 
-        /* ジョイスティック */
         #joy-base { position: absolute; width: 90px; height: 90px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 2px solid rgba(255,255,255,0.15); display: none; transform: translate(-50%, -50%); pointer-events: none; z-index: 100; }
         #joy-stick { position: absolute; top: 50%; left: 50%; width: 36px; height: 36px; background: rgba(255,255,255,0.7); border-radius: 50%; margin: -18px 0 0 -18px; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
 
-        /* ボスUI */
         #boss-ui { position: absolute; bottom: 30px; left: 10%; width: 80%; display: none; text-align: center; z-index: 50; pointer-events: none; }
-        #boss-hp { width: 100%; height: 16px; background: #222; border: 2px solid #ef4444; border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
-        #boss-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #dc2626, #f87171); }
-        
-        #message-log { position: absolute; top: 90px; left: 0; width: 100%; text-align: center; font-weight: 900; font-size: 20px; color: #fbbf24; text-shadow: 0 0 15px rgba(0,0,0,0.8); pointer-events: none; z-index: 60; }
-        
-        /* 結果画面 */
+        #boss-hp { width: 100%; height: 16px; background: #222; border: 2px solid #ef4444; border-radius: 8px; overflow: hidden; box-shadow: 0 0 15px rgba(239,68,68,0.5); }
+        #boss-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #84cc16, #65a30d); }
+
+        #message-log { position: absolute; top: 90px; left: 0; width: 100%; text-align: center; font-weight: 900; font-size: 20px; color: #93c5fd; text-shadow: 0 0 15px rgba(0,0,0,0.8); pointer-events: none; z-index: 60; }
+
         #screen-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 450px; display: none; background: rgba(15,23,42,0.95); padding: 35px; border-radius: 20px; border: 2px solid #3b82f6; color: white; box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 200; text-align: center; box-sizing: border-box; }
         .interactive-link { pointer-events: auto; -webkit-touch-callout: default; user-select: auto; -webkit-user-select: auto; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<!-- スタート画面 -->
 <div id="start-screen">
-    <h1 id="title-text">Katana</h1>
-    <p id="subtitle-text">SURVIVAL ACTION</p>
+    <div style="text-align: center;">
+        <h1 id="title-text">Katana</h1>
+        <p id="subtitle-text">SURVIVAL ACTION</p>
+    </div>
     <button id="start-btn" class="interactive-link">GAME START</button>
 </div>
 
-<!-- ゲーム内UI -->
 <div id="ui">
     <div class="ui-header">
         <div><div class="label">LEVEL</div><div class="val-text val-level" id="lv-text">1</div></div>
-        <div style="text-align: right;"><div class="label">ENERGY BLADES</div><div class="val-text val-blade" id="blade-text">3</div></div>
+        <div style="text-align: right;"><div class="label">KATANA</div><div class="val-text val-blade" id="blade-text">3</div></div>
     </div>
     <div class="exp-bar"><div id="exp-fill"></div></div>
 </div>
@@ -67,7 +60,7 @@
 <div id="message-log"></div>
 
 <div id="boss-ui">
-    <div style="color: #ef4444; font-size: 14px; font-weight: 900; margin-bottom: 4px; letter-spacing: 2px;">WARNING: FINAL BOSS</div>
+    <div style="color: #84cc16; font-size: 14px; font-weight: 900; margin-bottom: 4px; letter-spacing: 2px;">⚠ FINAL BOSS ⚠</div>
     <div id="boss-hp"><div id="boss-fill"></div></div>
 </div>
 
@@ -81,13 +74,12 @@
 <canvas id="confettiCanvas"></canvas>
 
 <script>
-// 確実にDOMの読み込みが完了してから初期化処理を開始する
 window.addEventListener("load", function() {
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const confettiCanvas = document.getElementById('confettiCanvas');
     const cCtx = confettiCanvas.getContext('2d');
-    
+
     const startScreen = document.getElementById('start-screen');
     const startBtn = document.getElementById('start-btn');
     const ui = document.getElementById('ui');
@@ -101,106 +93,90 @@ window.addEventListener("load", function() {
     const messageLog = document.getElementById('message-log');
 
     let w, h;
-    let gameState = 'start'; // start, playing, boss, won, lost
+    let gameState = 'start';
     const camera = { x: 0, y: 0 };
-    let frameTime = 0; 
+    let frameTime = 0;
     let confettiAnimId;
     let confettis = [];
-    
+
     const player = { x: 2000, y: 2000, r: 25, speed: 6.5, level: 1, exp: 0, nextExp: 100, blades: 3, maxBlades: 3, bladeAngle: 0, regen: 0 };
     let enemies = [], rivals = [], gems = [], particles = [], boss = null;
-
     let joy = { active: false, sx: 0, sy: 0, nx: 0, ny: 0 };
     let keys = {};
 
-    function resize() { 
-        w = canvas.width = confettiCanvas.width = window.innerWidth || 800; 
-        h = canvas.height = confettiCanvas.height = window.innerHeight || 600; 
+    function resize() {
+        w = canvas.width = confettiCanvas.width = window.innerWidth || 800;
+        h = canvas.height = confettiCanvas.height = window.innerHeight || 600;
     }
     window.addEventListener('resize', resize);
     resize();
 
-    // 入力イベント登録
     window.addEventListener('keydown', e => keys[e.code] = true);
     window.addEventListener('keyup', e => keys[e.code] = false);
 
     function handleInputStart(x, y, target) {
-        if(target && (target.closest('#screen-msg') || target.closest('#start-screen'))) return; 
-        if(gameState !== 'playing' && gameState !== 'boss') return;
+        if (target && (target.closest('#screen-msg') || target.closest('#start-screen'))) return;
+        if (gameState !== 'playing' && gameState !== 'boss') return;
         joy.active = true; joy.sx = x; joy.sy = y;
         const jb = document.getElementById('joy-base');
         jb.style.display = 'block'; jb.style.left = joy.sx + 'px'; jb.style.top = joy.sy + 'px';
         document.getElementById('joy-stick').style.transform = `translate(0px, 0px)`;
     }
-
     function handleInputMove(x, y) {
-        if(!joy.active) return;
+        if (!joy.active) return;
         const dx = x - joy.sx, dy = y - joy.sy;
         const dist = Math.hypot(dx, dy), max = 45, ang = Math.atan2(dy, dx), move = Math.min(dist, max);
         joy.nx = Math.cos(ang) * (move / max); joy.ny = Math.sin(ang) * (move / max);
         document.getElementById('joy-stick').style.transform = `translate(${Math.cos(ang)*move}px, ${Math.sin(ang)*move}px)`;
     }
-
     function handleInputEnd() {
-        joy.active = false; joy.nx = 0; joy.ny = 0; 
-        document.getElementById('joy-base').style.display = 'none'; 
+        joy.active = false; joy.nx = 0; joy.ny = 0;
+        document.getElementById('joy-base').style.display = 'none';
     }
 
-    window.addEventListener('touchstart', e => handleInputStart(e.touches[0].clientX, e.touches[0].clientY, e.target), {passive: false});
-    window.addEventListener('touchmove', e => { if(joy.active) e.preventDefault(); handleInputMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+    window.addEventListener('touchstart', e => handleInputStart(e.touches[0].clientX, e.touches[0].clientY, e.target), { passive: false });
+    window.addEventListener('touchmove', e => { if (joy.active) e.preventDefault(); handleInputMove(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
     window.addEventListener('touchend', () => handleInputEnd());
-
     window.addEventListener('mousedown', e => handleInputStart(e.clientX, e.clientY, e.target));
-    window.addEventListener('mousemove', e => { if(joy.active) e.preventDefault(); handleInputMove(e.clientX, e.clientY); });
+    window.addEventListener('mousemove', e => { if (joy.active) e.preventDefault(); handleInputMove(e.clientX, e.clientY); });
     window.addEventListener('mouseup', () => handleInputEnd());
     window.addEventListener('mouseleave', () => handleInputEnd());
 
-    // メッセージ表示
     function showMsg(txt) {
         messageLog.innerText = txt;
-        setTimeout(() => { if(messageLog.innerText === txt) messageLog.innerText = ''; }, 2000);
+        setTimeout(() => { if (messageLog.innerText === txt) messageLog.innerText = ''; }, 2000);
     }
 
-    // ゲーム開始＆リセット関数
     function startGame() {
         gameState = 'playing';
         startScreen.style.display = 'none';
         ui.style.display = 'block';
-        screenMsg.style.display = 'none'; 
+        screenMsg.style.display = 'none';
         bossUI.style.display = 'none';
-        
         player.x = 2000; player.y = 2000; player.level = 1; player.exp = 0; player.nextExp = 100;
         player.blades = 3; player.maxBlades = 3; player.bladeAngle = 0; player.regen = 0;
-        
         enemies = []; rivals = []; gems = []; particles = []; boss = null;
-        
         lvText.innerText = player.level; bladeText.innerText = player.blades; expFill.style.width = '0%';
-        joy.active = false; joy.nx = 0; joy.ny = 0; document.getElementById('joy-base').style.display = 'none';
-        for(let k in keys) keys[k] = false;
-
-        if(confettiAnimId) cancelAnimationFrame(confettiAnimId);
+        joy.active = false; joy.nx = 0; joy.ny = 0;
+        document.getElementById('joy-base').style.display = 'none';
+        for (let k in keys) keys[k] = false;
+        if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
         cCtx.clearRect(0, 0, w, h);
         confettis = [];
-
         showMsg("GAME START!");
     }
-
-    // スタートボタンにイベントを直接紐付け
     startBtn.addEventListener("click", startGame);
 
-    // 敵スポーン
-    function spawnEnemy(type='normal') {
-        if(enemies.length > 60) return;
+    function spawnEnemy(type = 'normal') {
+        if (enemies.length > 60) return;
         const ang = Math.random() * Math.PI * 2, dist = 800;
         enemies.push({ x: player.x + Math.cos(ang) * dist, y: player.y + Math.sin(ang) * dist, r: type === 'normal' ? 20 : 28, hp: type === 'normal' ? 1 : 10, speed: type === 'normal' ? 2.8 : 4.5, type: type });
     }
-
     function spawnRival() {
-        if(rivals.length > 3) return;
+        if (rivals.length > 3) return;
         const ang = Math.random() * Math.PI * 2, dist = 900;
         rivals.push({ x: player.x + Math.cos(ang) * dist, y: player.y + Math.sin(ang) * dist, r: 28, speed: 4.2, blades: 4, angle: 0 });
     }
-
     function spawnBoss() {
         gameState = 'boss';
         boss = { x: player.x, y: player.y - 600, r: 80, hp: 100, max: 100, blades: 16, angle: 0 };
@@ -208,148 +184,153 @@ window.addEventListener("load", function() {
         showMsg("！！！ 最終ボス出現 ！！！");
     }
 
-    // 更新ロジック
     function update() {
-        if(gameState !== 'playing' && gameState !== 'boss') return;
-
+        if (gameState !== 'playing' && gameState !== 'boss') return;
         let vx = 0, vy = 0;
-        if(keys.KeyW || keys.ArrowUp) vy -= 1; if(keys.KeyS || keys.ArrowDown) vy += 1;
-        if(keys.KeyA || keys.ArrowLeft) vx -= 1; if(keys.KeyD || keys.ArrowRight) vx += 1;
-        if(joy.active) { vx = joy.nx; vy = joy.ny; }
-
-        if(vx !== 0 || vy !== 0) {
+        if (keys.KeyW || keys.ArrowUp) vy -= 1;
+        if (keys.KeyS || keys.ArrowDown) vy += 1;
+        if (keys.KeyA || keys.ArrowLeft) vx -= 1;
+        if (keys.KeyD || keys.ArrowRight) vx += 1;
+        if (joy.active) { vx = joy.nx; vy = joy.ny; }
+        if (vx !== 0 || vy !== 0) {
             const m = Math.hypot(vx, vy);
-            player.x += (vx/m) * player.speed; player.y += (vy/m) * player.speed;
+            player.x += (vx / m) * player.speed;
+            player.y += (vy / m) * player.speed;
         }
-
-        camera.x = player.x - w/2; camera.y = player.y - h/2;
+        camera.x = player.x - w / 2;
+        camera.y = player.y - h / 2;
         player.bladeAngle += 0.08;
 
-        if(player.blades < player.maxBlades) {
+        if (player.blades < player.maxBlades) {
             player.regen++;
-            if(player.regen > 150) { player.blades++; player.regen = 0; showMsg("刃が回復した"); }
+            if (player.regen > 150) { player.blades++; player.regen = 0; showMsg("刃が回復した"); }
         }
 
-        for(let i=enemies.length-1; i>=0; i--) {
-            const e = enemies[i]; const d = Math.hypot(player.x-e.x, player.y-e.y);
-            e.x += (player.x-e.x)/d * e.speed; e.y += (player.y-e.y)/d * e.speed;
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
+            const d = Math.hypot(player.x - e.x, player.y - e.y);
+            e.x += (player.x - e.x) / d * e.speed;
+            e.y += (player.y - e.y) / d * e.speed;
             let hit = false;
-            for(let j=0; j<player.blades; j++) {
-                const a = player.bladeAngle + (j * Math.PI*2/player.blades);
-                if(Math.hypot(player.x+Math.cos(a)*110 - e.x, player.y+Math.sin(a)*110 - e.y) < e.r + 25) { hit = true; break; }
+            for (let j = 0; j < player.blades; j++) {
+                const a = player.bladeAngle + (j * Math.PI * 2 / player.blades);
+                if (Math.hypot(player.x + Math.cos(a) * 110 - e.x, player.y + Math.sin(a) * 110 - e.y) < e.r + 25) { hit = true; break; }
             }
-            if(hit) {
-                gems.push({x:e.x, y:e.y, exp:15});
-                for(let p=0;p<3;p++) particles.push({x:e.x, y:e.y, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:20, c:'#22c55e'});
-                enemies.splice(i,1);
-            } else if(d < player.r + e.r && player.blades <= 0) {
+            if (hit) {
+                gems.push({ x: e.x, y: e.y, exp: 15 });
+                for (let p = 0; p < 3; p++) particles.push({ x: e.x, y: e.y, vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 20, c: '#93c5fd' });
+                enemies.splice(i, 1);
+            } else if (d < player.r + e.r && player.blades <= 0) {
                 endGame('lost', '刃を失い、敵の群れに飲まれた...');
             }
         }
 
-        for(let i=rivals.length-1; i>=0; i--) {
-            const r = rivals[i]; const d = Math.hypot(player.x-r.x, player.y-r.y);
-            r.x += (player.x-r.x)/d * r.speed; r.y += (player.y-r.y)/d * r.speed; r.angle -= 0.07;
+        for (let i = rivals.length - 1; i >= 0; i--) {
+            const r = rivals[i];
+            const d = Math.hypot(player.x - r.x, player.y - r.y);
+            r.x += (player.x - r.x) / d * r.speed;
+            r.y += (player.y - r.y) / d * r.speed;
+            r.angle -= 0.07;
             let cl = false;
-            for(let pj=0; pj<player.blades; pj++) {
-                const pa = player.bladeAngle + (pj*Math.PI*2/player.blades);
-                const pbx = player.x+Math.cos(pa)*110, pby = player.y+Math.sin(pa)*110;
-                for(let rj=0; rj<r.blades; rj++) {
-                    const ra = r.angle + (rj*Math.PI*2/r.blades);
-                    const rbx = r.x+Math.cos(ra)*110, rby = r.y+Math.sin(ra)*110;
-                    if(Math.hypot(pbx - rbx, pby - rby) < 35) {
+            for (let pj = 0; pj < player.blades; pj++) {
+                const pa = player.bladeAngle + (pj * Math.PI * 2 / player.blades);
+                const pbx = player.x + Math.cos(pa) * 110, pby = player.y + Math.sin(pa) * 110;
+                for (let rj = 0; rj < r.blades; rj++) {
+                    const ra = r.angle + (rj * Math.PI * 2 / r.blades);
+                    const rbx = r.x + Math.cos(ra) * 110, rby = r.y + Math.sin(ra) * 110;
+                    if (Math.hypot(pbx - rbx, pby - rby) < 35) {
                         player.blades--; r.blades--; cl = true;
-                        for(let p=0;p<5;p++) particles.push({x:(pbx+rbx)/2, y:(pby+rby)/2, vx:(Math.random()-0.5)*15, vy:(Math.random()-0.5)*15, life:30, c:'#fff'});
+                        for (let p = 0; p < 5; p++) particles.push({ x: (pbx + rbx) / 2, y: (pby + rby) / 2, vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15, life: 30, c: '#e2e8f0' });
                         break;
                     }
                 }
-                if(cl) break;
+                if (cl) break;
             }
-            for(let rj=0; rj<r.blades; rj++) {
-                const ra = r.angle + (rj*Math.PI*2/r.blades);
-                if(Math.hypot(r.x+Math.cos(ra)*110 - player.x, r.y+Math.sin(ra)*110 - player.y) < player.r+15) endGame('lost', 'ライバルの凶刃に倒れた...');
+            for (let rj = 0; rj < r.blades; rj++) {
+                const ra = r.angle + (rj * Math.PI * 2 / r.blades);
+                if (Math.hypot(r.x + Math.cos(ra) * 110 - player.x, r.y + Math.sin(ra) * 110 - player.y) < player.r + 15) endGame('lost', 'ライバルの凶刃に倒れた...');
             }
-            for(let pj=0; pj<player.blades; pj++) {
-                const pa = player.bladeAngle + (pj*Math.PI*2/player.blades);
-                if(Math.hypot(player.x+Math.cos(pa)*110 - r.x, player.y+Math.sin(pa)*110 - r.y) < r.r+15) {
-                    for(let k=0; k<20; k++) gems.push({x:r.x+(Math.random()-0.5)*120, y:r.y+(Math.random()-0.5)*120, exp:50, gold:true});
-                    for(let p=0;p<10;p++) particles.push({x:r.x, y:r.y, vx:(Math.random()-0.5)*20, vy:(Math.random()-0.5)*20, life:40, c:'#ef4444'});
-                    rivals.splice(i,1); showMsg("RIVAL DEFEATED!"); break;
+            for (let pj = 0; pj < player.blades; pj++) {
+                const pa = player.bladeAngle + (pj * Math.PI * 2 / player.blades);
+                if (Math.hypot(player.x + Math.cos(pa) * 110 - r.x, player.y + Math.sin(pa) * 110 - r.y) < r.r + 15) {
+                    for (let k = 0; k < 20; k++) gems.push({ x: r.x + (Math.random() - 0.5) * 120, y: r.y + (Math.random() - 0.5) * 120, exp: 50, gold: true });
+                    for (let p = 0; p < 10; p++) particles.push({ x: r.x, y: r.y, vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20, life: 40, c: '#a855f7' });
+                    rivals.splice(i, 1); showMsg("RIVAL DEFEATED!"); break;
                 }
             }
         }
 
-        if(boss) {
-            const d = Math.hypot(player.x-boss.x, player.y-boss.y);
-            boss.x += (player.x-boss.x)/d * 2.5; boss.y += (player.y-boss.y)/d * 2.5; boss.angle += 0.05;
-            // ボス刃ループ: 体当たり判定 + 剣vs剣衝突判定
-            for(let bj=boss.blades-1; bj>=0; bj--) {
-                const ba = boss.angle + (bj*Math.PI*2/Math.max(1,boss.blades));
-                const bbx = boss.x+Math.cos(ba)*180, bby = boss.y+Math.sin(ba)*180;
-                if(Math.hypot(bbx - player.x, bby - player.y) < player.r+15) endGame('lost', '魔王の圧倒的な力に砕かれた...');
-                // 剣クラッシュ: プレイヤー刃がボス刃に当たる
+        if (boss) {
+            const d = Math.hypot(player.x - boss.x, player.y - boss.y);
+            boss.x += (player.x - boss.x) / d * 2.5;
+            boss.y += (player.y - boss.y) / d * 2.5;
+            boss.angle += 0.05;
+            for (let bj = boss.blades - 1; bj >= 0; bj--) {
+                const ba = boss.angle + (bj * Math.PI * 2 / Math.max(1, boss.blades));
+                const bbx = boss.x + Math.cos(ba) * 180, bby = boss.y + Math.sin(ba) * 180;
+                if (Math.hypot(bbx - player.x, bby - player.y) < player.r + 15) endGame('lost', '魔王の圧倒的な力に砕かれた...');
                 let clashed = false;
-                for(let pj=player.blades-1; pj>=0 && !clashed; pj--) {
-                    const pa = player.bladeAngle + (pj*Math.PI*2/Math.max(1,player.blades));
-                    const pbx = player.x+Math.cos(pa)*110, pby = player.y+Math.sin(pa)*110;
-                    if(Math.hypot(pbx-bbx, pby-bby) < 28) {
+                for (let pj = player.blades - 1; pj >= 0 && !clashed; pj--) {
+                    const pa = player.bladeAngle + (pj * Math.PI * 2 / Math.max(1, player.blades));
+                    const pbx = player.x + Math.cos(pa) * 110, pby = player.y + Math.sin(pa) * 110;
+                    if (Math.hypot(pbx - bbx, pby - bby) < 28) {
                         boss.hp -= 8; boss.blades--; player.blades--;
-                        bossFill.style.width = (boss.hp/boss.max*100) + '%';
-                        const mx=(pbx+bbx)/2, my=(pby+bby)/2;
-                        for(let k=0;k<6;k++) particles.push({x:mx,y:my,vx:(Math.random()-0.5)*16,vy:(Math.random()-0.5)*16,life:25,c:k%2?'#fbbf24':'#ef4444'});
+                        bossFill.style.width = (boss.hp / boss.max * 100) + '%';
+                        const mx = (pbx + bbx) / 2, my = (pby + bby) / 2;
+                        for (let k = 0; k < 6; k++) particles.push({ x: mx, y: my, vx: (Math.random() - 0.5) * 16, vy: (Math.random() - 0.5) * 16, life: 25, c: k % 2 ? '#f8fafc' : '#84cc16' });
                         clashed = true;
                     }
                 }
             }
-            // プレイヤー刃がボス本体に直接当たる（近接追加ダメージ）
-            for(let pj=0; pj<player.blades; pj++) {
-                const pa = player.bladeAngle + (pj*Math.PI*2/Math.max(1,player.blades));
-                const pbx = player.x+Math.cos(pa)*110, pby = player.y+Math.sin(pa)*110;
-                if(Math.hypot(pbx - boss.x, pby - boss.y) < boss.r+20) {
-                    boss.hp -= 0.3; bossFill.style.width = (boss.hp/boss.max*100) + '%';
-                    particles.push({x:pbx, y:pby, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:15, c:'#fbbf24'});
+            for (let pj = 0; pj < player.blades; pj++) {
+                const pa = player.bladeAngle + (pj * Math.PI * 2 / Math.max(1, player.blades));
+                const pbx = player.x + Math.cos(pa) * 110, pby = player.y + Math.sin(pa) * 110;
+                if (Math.hypot(pbx - boss.x, pby - boss.y) < boss.r + 20) {
+                    boss.hp -= 0.3;
+                    bossFill.style.width = (boss.hp / boss.max * 100) + '%';
+                    particles.push({ x: pbx, y: pby, vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 15, c: '#84cc16' });
                 }
             }
-            if(boss.hp <= 0) endGame('won');
+            if (boss.hp <= 0) endGame('won');
         }
 
-        for(let i=gems.length-1; i>=0; i--) {
-            const g = gems[i]; const d = Math.hypot(player.x-g.x, player.y-g.y);
-            if(d < 250) { g.x += (player.x-g.x)/d*18; g.y += (player.y-g.y)/d*18; }
-            if(d < player.r+10) {
-                player.exp += g.exp; gems.splice(i,1);
-                if(player.exp >= player.nextExp) {
-                    player.level++; player.exp=0; player.nextExp *= 1.35;
+        for (let i = gems.length - 1; i >= 0; i--) {
+            const g = gems[i];
+            const d = Math.hypot(player.x - g.x, player.y - g.y);
+            if (d < 250) { g.x += (player.x - g.x) / d * 18; g.y += (player.y - g.y) / d * 18; }
+            if (d < player.r + 10) {
+                player.exp += g.exp; gems.splice(i, 1);
+                if (player.exp >= player.nextExp) {
+                    player.level++; player.exp = 0; player.nextExp *= 1.35;
                     player.maxBlades++; player.blades = player.maxBlades;
-                    showMsg("LEVEL UP! 刃の最大数増加！");
-                    if(player.level === 20) spawnBoss();
+                    showMsg("LEVEL UP! 刀の数が増えた！");
+                    if (player.level === 20) spawnBoss();
                 }
             }
         }
-        
-        for(let i=particles.length-1; i>=0; i--) {
-            const p = particles[i]; p.x+=p.vx; p.y+=p.vy; p.life--;
-            if(p.life<=0) particles.splice(i,1);
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--;
+            if (p.life <= 0) particles.splice(i, 1);
         }
 
-        if(gameState === 'playing') {
-            if(Math.random() < 0.06) spawnEnemy();
-            if(player.level > 5 && Math.random() < 0.01) spawnRival();
+        if (gameState === 'playing') {
+            if (Math.random() < 0.06) spawnEnemy();
+            if (player.level > 5 && Math.random() < 0.01) spawnRival();
         }
 
-        lvText.innerText = player.level; bladeText.innerText = player.blades; expFill.style.width = (player.exp/player.nextExp*100) + '%';
+        lvText.innerText = player.level;
+        bladeText.innerText = player.blades;
+        expFill.style.width = (player.exp / player.nextExp * 100) + '%';
     }
 
-    // 終了処理
-    function endGame(res, reason='') {
+    function endGame(res, reason = '') {
         gameState = res;
         screenMsg.style.display = 'block';
-
         const supportUrl = "https://oshipay.streamlit.app/?page=support&user=a81f2ae1-f7c8-4aef-9430-5e8dea2bfb56&name=あさぎり&icon=💻&acct=acct_1T6prLJxxP0VtABn";
         const createUrl = "https://oshipay.streamlit.app";
         const fallbackQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(supportUrl)}`;
-
-        if(res === 'lost') {
+        if (res === 'lost') {
             msgContent.innerHTML = `
                 <h1 style="font-size:36px; font-weight:900; color:#ef4444; margin-bottom:10px;">GAME OVER</h1>
                 <p style="color:#cbd5e1; margin-bottom:30px; font-weight:bold;">${reason}</p>
@@ -362,137 +343,503 @@ window.addEventListener("load", function() {
                 <p style="color:#e2e8f0; margin-bottom:20px; font-weight:bold;">見事、魔王を討ち果たした！</p>
                 <div style="background:rgba(255,255,255,0.1); padding:20px; border-radius:16px; margin-bottom:20px; border:1px solid rgba(255,255,255,0.2);">
                     <p style="color:white; font-weight:900; font-size:24px; margin-bottom:15px;">OshiPayの応援宜しく！🔥</p>
-                    
                     <a href="${supportUrl}" target="_blank" rel="noopener noreferrer" class="interactive-link" style="-webkit-touch-callout: default; display:inline-block; transition:transform 0.2s;">
                         <img src="image.png" onerror="this.onerror=null; this.src='${fallbackQrUrl}';" alt="OshiPay QR Code" style="width:180px; height:180px; border:4px solid white; border-radius:12px; background:white; object-fit:contain;">
                     </a>
-                    
                     <p style="font-size:12px; color:#fde047; margin-top:10px; font-weight:bold;">↑ 画像をタップ、または長押しで応援ページへ ↑</p>
-                    
                     <div style="margin-top:15px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.2);">
                         <a href="${createUrl}" target="_blank" rel="noopener noreferrer" class="interactive-link" style="color:#93c5fd; font-weight:bold; text-decoration:underline; font-size:14px;">QRコード作成はこちら ▶︎</a>
                     </div>
                 </div>
-                <button id="replay-btn" class="interactive-link" style="width:100%; padding:15px; border-radius:30px; font-weight:900; font-size:20px; color:white; background:linear-gradient(90deg, #3b82f6, #4f46e5); border:none; cursor:pointer;">PLAY AGAIN</button>
+                <button id="replay-btn" class="interactive-link" style="width:100%; padding:15px; border-radius:30px; font-weight:900; font-size:20px; color:white; background:linear-gradient(90deg, #1d4ed8, #4f46e5); border:none; cursor:pointer;">PLAY AGAIN</button>
             `;
             document.getElementById('replay-btn').addEventListener('click', startGame);
             startConfetti();
         }
     }
 
-    // 紙吹雪アニメ
     function startConfetti() {
-        const colors = ['#fce7f3', '#fbcfe8', '#fecdd3', '#fde047', '#fef08a', '#bae6fd', '#a7f3d0'];
-        for(let i=0; i<150; i++) {
+        const colors = ['#93c5fd', '#c4b5fd', '#6ee7b7', '#fde047', '#fca5a5', '#f8fafc', '#7c3aed'];
+        for (let i = 0; i < 150; i++) {
             confettis.push({ x: Math.random() * w, y: Math.random() * h - h, w: Math.random() * 10 + 5, h: Math.random() * 10 + 5, color: colors[Math.floor(Math.random() * colors.length)], vy: Math.random() * 3 + 2, vx: Math.random() * 2 - 1, rot: Math.random() * 360, rotSpeed: Math.random() * 10 - 5 });
         }
         function renderConfetti() {
             cCtx.clearRect(0, 0, w, h);
             confettis.forEach(c => {
                 c.y += c.vy; c.x += c.vx; c.rot += c.rotSpeed;
-                if(c.y > h) { c.y = -10; c.x = Math.random() * w; }
+                if (c.y > h) { c.y = -10; c.x = Math.random() * w; }
                 cCtx.save(); cCtx.translate(c.x, c.y); cCtx.rotate(c.rot * Math.PI / 180);
-                cCtx.fillStyle = c.color; cCtx.fillRect(-c.w/2, -c.h/2, c.w, c.h); cCtx.restore();
+                cCtx.fillStyle = c.color; cCtx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h); cCtx.restore();
             });
             confettiAnimId = requestAnimationFrame(renderConfetti);
         }
         renderConfetti();
     }
 
-    // --- キャラ描画 ---
+    // ===== VISUAL HELPERS =====
+
+    // 刀（カタナ）描画
+    function drawKatana(bx, by, angle, ownerType) {
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(angle + Math.PI / 2);
+
+        const isBoss = ownerType === 'boss';
+        const isRival = ownerType === 'rival';
+        const bladeLen = isBoss ? 52 : 40;
+
+        // グロー
+        ctx.shadowBlur = 22;
+        ctx.shadowColor = isBoss ? '#84cc16' : isRival ? '#a855f7' : '#93c5fd';
+
+        // 刀身（グラデーション）
+        const bGrad = ctx.createLinearGradient(-3, 0, 4, 0);
+        bGrad.addColorStop(0, '#94a3b8');
+        bGrad.addColorStop(0.4, '#f8fafc');
+        bGrad.addColorStop(1, '#cbd5e1');
+
+        ctx.beginPath();
+        ctx.moveTo(0, -bladeLen - 5);     // 切先（先端）
+        ctx.lineTo(3.5, -bladeLen + 12);
+        ctx.lineTo(3.5, 8);
+        ctx.lineTo(-2.5, 8);
+        ctx.lineTo(-0.5, -bladeLen + 12);
+        ctx.closePath();
+        ctx.fillStyle = bGrad;
+        ctx.fill();
+
+        // 刃筋（ハイライト）
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(1.5, -bladeLen - 4);
+        ctx.lineTo(3, 6);
+        ctx.stroke();
+
+        // 鍔（ガード）
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = isBoss ? '#f97316' : '#fbbf24';
+        ctx.fillStyle = isBoss ? '#7c2d12' : '#334155';
+        ctx.beginPath();
+        ctx.ellipse(0, 10, 10, 4.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = isBoss ? '#ea580c' : '#64748b';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // 柄（ハンドル）
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(-3.5, 13, 7, 18);
+
+        // 柄巻（ひも）
+        ctx.strokeStyle = '#92400e';
+        ctx.lineWidth = 2;
+        for (let h = 0; h < 5; h++) {
+            ctx.beginPath();
+            ctx.moveTo(-4, 15 + h * 3.2);
+            ctx.lineTo(4, 16.5 + h * 3.2);
+            ctx.stroke();
+        }
+
+        // 柄頭（ポメル）
+        ctx.fillStyle = '#374151';
+        ctx.beginPath();
+        ctx.ellipse(0, 33, 4.5, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    // 畳背景描画
+    function drawBackground() {
+        // ベース
+        ctx.fillStyle = '#1a3318';
+        ctx.fillRect(0, 0, w, h);
+
+        // 畳マット
+        const mW = 180, mH = 90;
+        const ox = (((-camera.x % (mW * 2)) + mW * 2) % (mW * 2)) - mW;
+        const oy = (((-camera.y % (mH * 2)) + mH * 2) % (mH * 2)) - mH;
+
+        for (let col = -1; col < w / mW + 2; col++) {
+            for (let row = -1; row < h / mH + 2; row++) {
+                const mx = col * mW + ox;
+                const my = row * mH + oy;
+                const wc = Math.floor((col * mW + ox + camera.x) / mW);
+                const hc = Math.floor((row * mH + oy + camera.y) / mH);
+                const alt = (wc + hc) % 2 === 0;
+
+                // 畳面
+                ctx.fillStyle = alt ? '#2d5a1e' : '#366824';
+                ctx.fillRect(mx + 1, my + 1, mW - 2, mH - 2);
+
+                // 織り目（細かい横線）
+                ctx.strokeStyle = alt ? '#345e22' : '#3d7229';
+                ctx.lineWidth = 0.5;
+                for (let l = 5; l < mH - 2; l += 5) {
+                    ctx.beginPath();
+                    ctx.moveTo(mx + 3, my + l);
+                    ctx.lineTo(mx + mW - 3, my + l);
+                    ctx.stroke();
+                }
+
+                // 縁（へり）
+                ctx.strokeStyle = '#152a10';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(mx + 1, my + 1, mW - 2, mH - 2);
+            }
+        }
+
+        // 行灯グロー
+        const lanterns = [
+            { wx: 1680, wy: 1730 }, { wx: 2320, wy: 1730 },
+            { wx: 1680, wy: 2270 }, { wx: 2320, wy: 2270 },
+        ];
+        lanterns.forEach(({ wx, wy }) => {
+            const sx = wx - camera.x, sy = wy - camera.y;
+            if (sx > -320 && sx < w + 320 && sy > -320 && sy < h + 320) {
+                const pulse = 0.055 + Math.sin(frameTime * 0.04 + wx) * 0.018;
+                const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, 260);
+                g.addColorStop(0, `rgba(255, 155, 50, ${pulse})`);
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, w, h);
+            }
+        });
+    }
+
+    // ===== キャラクター描画 =====
     function drawChar(x, y, r, type, bld, ang) {
         const sx = x - camera.x, sy = y - camera.y;
-        if(sx < -250 || sx > w+250 || sy < -250 || sy > h+250) return;
-        const breath = Math.sin(frameTime * 0.1 + x) * 3;
-        ctx.save(); ctx.translate(sx, sy + breath);
+        if (sx < -280 || sx > w + 280 || sy < -280 || sy > h + 280) return;
+        const breath = Math.sin(frameTime * 0.1 + x) * 2;
+        ctx.save();
+        ctx.translate(sx, sy + breath);
 
-        if(type === 'player') {
-            ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.ellipse(-12, -8, 10, 18, Math.PI/6 + Math.sin(frameTime*0.1)*0.2, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.moveTo(-15, 20); ctx.lineTo(15, 20); ctx.lineTo(10, -10); ctx.lineTo(-10, -10); ctx.fill();
-            ctx.fillStyle = '#991b1b'; ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(15, 20); ctx.lineTo(10, 20); ctx.fill();
-            ctx.fillStyle = '#fef08a'; ctx.beginPath(); ctx.arc(0, -14, 13, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(0, -18, 14, Math.PI, 0); ctx.fill(); ctx.beginPath(); ctx.moveTo(-14, -18); ctx.lineTo(14, -18); ctx.lineTo(5, -8); ctx.lineTo(0, -14); ctx.lineTo(-8, -8); ctx.fill();
-            ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.ellipse(-5, -14, 2.5, 4.5, 0, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(5, -14, 2.5, 4.5, 0, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(-5.5, -15, 1.2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(4.5, -15, 1.2, 0, Math.PI*2); ctx.fill();
-        } else if(type === 'boss') {
-            ctx.fillStyle = '#4c1d95'; ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI*2); ctx.fill();
-            ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(0, 0, r + 10 + Math.sin(frameTime*0.15)*8, 0, Math.PI*2); ctx.stroke();
-            ctx.fillStyle = '#fca5a5'; ctx.beginPath(); ctx.moveTo(-30, -r+15); ctx.lineTo(-60, -r-40); ctx.lineTo(-10, -r+5); ctx.fill(); ctx.beginPath(); ctx.moveTo(30, -r+15); ctx.lineTo(60, -r-40); ctx.lineTo(10, -r+5); ctx.fill();
-            ctx.shadowBlur = 25; ctx.shadowColor = '#fbbf24'; ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.ellipse(-25, -20, 12, 5, Math.PI/8, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(25, -20, 12, 5, -Math.PI/8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
-            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 20, 30, 0, Math.PI, false); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-20, 20); ctx.lineTo(-12, 40); ctx.lineTo(-4, 20); ctx.fill(); ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(12, 40); ctx.lineTo(4, 20); ctx.fill();
-        } else if(type === 'rival') {
-            ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(0, 5, 22, 0, Math.PI*2); ctx.fill(); ctx.fillRect(-22, 5, 44, 20);
-            ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(0, -12, 16, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 15; ctx.shadowColor = '#ef4444'; ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.ellipse(-6, -12, 4, 1.5, Math.PI/8, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.ellipse(6, -12, 4, 1.5, -Math.PI/8, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur = 0;
+        if (type === 'player') {
+            // --- 主人公：赤マフラーの青忍者 ---
+            // 脚
+            ctx.fillStyle = '#1e3a8a';
+            ctx.fillRect(-11, 10, 9, 20);
+            ctx.fillRect(2, 10, 9, 20);
+            // 足袋
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(-11, 27, 9, 4);
+            ctx.fillRect(2, 27, 9, 4);
+            // 胴体
+            ctx.fillStyle = '#1d4ed8';
+            ctx.beginPath();
+            ctx.roundRect(-13, -8, 26, 20, 4);
+            ctx.fill();
+            // 帯
+            ctx.fillStyle = '#172554';
+            ctx.fillRect(-13, 6, 26, 5);
+            // 腕（左・右）
+            ctx.fillStyle = '#1d4ed8';
+            ctx.fillRect(-22, -6, 10, 15);
+            ctx.fillRect(12, -6, 10, 15);
+            // 手
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath(); ctx.arc(-17, 10, 5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(17, 10, 5, 0, Math.PI * 2); ctx.fill();
+            // 首
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(-4, -12, 8, 6);
+            // 頭（忍者マスク）
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(0, -21, 13, 0, Math.PI * 2);
+            ctx.fill();
+            // 赤マフラー本体
+            const sw = Math.sin(frameTime * 0.12) * 4;
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath();
+            ctx.moveTo(-12, -13);
+            ctx.lineTo(12, -13);
+            ctx.lineTo(14, -4);
+            ctx.lineTo(-14, -4);
+            ctx.closePath();
+            ctx.fill();
+            // マフラーの尻尾（なびく）
+            ctx.beginPath();
+            ctx.moveTo(-12, -13);
+            ctx.lineTo(-22 + sw, -7);
+            ctx.lineTo(-19 + sw, 4);
+            ctx.lineTo(-10, -4);
+            ctx.closePath();
+            ctx.fill();
+            // 目（白いスリット）
+            ctx.fillStyle = '#f1f5f9';
+            ctx.beginPath(); ctx.ellipse(-4.5, -22, 4.5, 2.2, 0.1, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(4.5, -22, 4.5, 2.2, -0.1, 0, Math.PI * 2); ctx.fill();
+            // 瞳（青）
+            ctx.fillStyle = '#60a5fa';
+            ctx.beginPath(); ctx.arc(-4.5, -22, 1.8, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(4.5, -22, 1.8, 0, Math.PI * 2); ctx.fill();
+
+        } else if (type === 'boss') {
+            // --- ボス：ジャバ・ザ・ハット風の巨大異形 ---
+            // 尾部
+            ctx.fillStyle = '#365314';
+            ctx.beginPath();
+            ctx.ellipse(0, r * 0.55, r * 0.58, r * 0.32, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // メイン体（巨大）
+            const bGrad = ctx.createRadialGradient(-r * 0.22, -r * 0.22, 0, 0, 0, r + 18);
+            bGrad.addColorStop(0, '#65a30d');
+            bGrad.addColorStop(0.55, '#4d7c0f');
+            bGrad.addColorStop(1, '#274200');
+            ctx.fillStyle = bGrad;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, r, r * 0.88, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // 腹（明るい）
+            ctx.fillStyle = '#a3e635';
+            ctx.beginPath();
+            ctx.ellipse(6, r * 0.12, r * 0.56, r * 0.4, 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            // 頭部
+            ctx.fillStyle = '#4d7c0f';
+            ctx.beginPath();
+            ctx.ellipse(0, -r * 0.44, r * 0.72, r * 0.56, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // 大きな口
+            ctx.fillStyle = '#14290a';
+            ctx.beginPath();
+            ctx.ellipse(0, -r * 0.18, r * 0.5, r * 0.2, 0, 0, Math.PI);
+            ctx.fill();
+            // 牙
+            ctx.fillStyle = '#fef9c3';
+            for (let t = -2; t <= 2; t++) {
+                ctx.beginPath();
+                ctx.moveTo(t * 13, -r * 0.18);
+                ctx.lineTo(t * 13 - 4, -r * 0.18 + 14);
+                ctx.lineTo(t * 13 + 4, -r * 0.18 + 14);
+                ctx.closePath();
+                ctx.fill();
+            }
+            // 目（鈍く光る黄色）
+            const ep = 0.35 + Math.sin(frameTime * 0.08) * 0.2;
+            ctx.shadowBlur = 28 * ep + 12;
+            ctx.shadowColor = '#fbbf24';
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath(); ctx.ellipse(-r * 0.27, -r * 0.61, 12, 9, -0.2, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(r * 0.27, -r * 0.61, 12, 9, 0.2, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+            // 瞳
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.arc(-r * 0.27, -r * 0.61, 4.5, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(r * 0.27, -r * 0.61, 4.5, 0, Math.PI * 2); ctx.fill();
+            // 腕
+            ctx.fillStyle = '#4d7c0f';
+            ctx.beginPath(); ctx.ellipse(-r - 5, r * 0.08, 19, 12, 0.4, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(r + 5, r * 0.08, 19, 12, -0.4, 0, Math.PI * 2); ctx.fill();
+            // 棘付き武器（右手に持つ）
+            ctx.save();
+            ctx.translate(r + 22, -22);
+            ctx.rotate(-0.4 + Math.sin(frameTime * 0.06) * 0.12);
+            ctx.fillStyle = '#292524';
+            ctx.fillRect(-5, -38, 10, 55);
+            ctx.fillStyle = '#6b7280';
+            for (let s = -32; s <= 8; s += 10) {
+                ctx.beginPath(); ctx.moveTo(-5, s); ctx.lineTo(-15, s + 4); ctx.lineTo(-5, s + 7); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(5, s); ctx.lineTo(15, s + 4); ctx.lineTo(5, s + 7); ctx.fill();
+            }
+            ctx.restore();
+            // 禍々しいオーラ
+            ctx.strokeStyle = `rgba(132,204,22,${0.22 + Math.sin(frameTime * 0.1) * 0.12})`;
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(0, 0, r + 20 + Math.sin(frameTime * 0.13) * 7, 0, Math.PI * 2);
+            ctx.stroke();
+
+        } else if (type === 'rival') {
+            // --- ライバル：紫甲冑の侍忍者 ---
+            // 脚
+            ctx.fillStyle = '#3b0764';
+            ctx.fillRect(-10, 12, 9, 20);
+            ctx.fillRect(1, 12, 9, 20);
+            // 胴体鎧
+            const armGrad = ctx.createLinearGradient(-15, -8, 15, 22);
+            armGrad.addColorStop(0, '#6d28d9');
+            armGrad.addColorStop(1, '#3b0764');
+            ctx.fillStyle = armGrad;
+            ctx.beginPath();
+            ctx.roundRect(-15, -8, 30, 22, 4);
+            ctx.fill();
+            // 鎧ライン
+            ctx.strokeStyle = '#7c3aed';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(-15, 4); ctx.lineTo(15, 4); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(-15, 12); ctx.lineTo(15, 12); ctx.stroke();
+            // 胸紋様（ひし形）
+            ctx.fillStyle = '#8b5cf6';
+            ctx.beginPath();
+            ctx.moveTo(0, -5); ctx.lineTo(-6, 2); ctx.lineTo(0, 9); ctx.lineTo(6, 2);
+            ctx.closePath(); ctx.fill();
+            // 肩当て
+            ctx.fillStyle = '#5b21b6';
+            ctx.beginPath(); ctx.ellipse(-18, -3, 10, 6, -0.3, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(18, -3, 10, 6, 0.3, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.ellipse(-18, -3, 10, 6, -0.3, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.ellipse(18, -3, 10, 6, 0.3, 0, Math.PI * 2); ctx.stroke();
+            // 腕
+            ctx.fillStyle = '#5b21b6';
+            ctx.fillRect(-24, -5, 10, 15);
+            ctx.fillRect(14, -5, 10, 15);
+            // 頭（兜）
+            ctx.fillStyle = '#1e1b4b';
+            ctx.beginPath(); ctx.arc(0, -20, 13, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#4c1d95';
+            ctx.beginPath(); ctx.arc(0, -22, 14, Math.PI, 0); ctx.fill();
+            // 兜の角（左右）
+            ctx.fillStyle = '#6d28d9';
+            ctx.beginPath(); ctx.moveTo(-3, -36); ctx.lineTo(-8, -22); ctx.lineTo(-1, -22); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(3, -36); ctx.lineTo(8, -22); ctx.lineTo(1, -22); ctx.closePath(); ctx.fill();
+            // 目（紫に光る）
+            ctx.shadowBlur = 14;
+            ctx.shadowColor = '#a855f7';
+            ctx.fillStyle = '#c084fc';
+            ctx.beginPath(); ctx.ellipse(-4.5, -20, 4.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(4.5, -20, 4.5, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.shadowBlur = 0;
+
         } else {
-            ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(0, -12, 13, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#334155'; ctx.beginPath(); ctx.moveTo(-15, 0); ctx.lineTo(15, 0); ctx.lineTo(12, 25); ctx.lineTo(-12, 25); ctx.fill();
-            ctx.fillStyle = '#e2e8f0'; ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(6, 0); ctx.lineTo(0, 12); ctx.fill();
-            ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.moveTo(-2, 2); ctx.lineTo(2, 2); ctx.lineTo(3, 16); ctx.lineTo(0, 19); ctx.lineTo(-3, 16); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-5, -14, 4, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(5, -14, 4, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(-5, -14, 1.5, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(5, -14, 1.5, 0, Math.PI*2); ctx.fill();
+            // --- 敵：黒子忍者 ---
+            const isStrong = type === 'strong';
+            // 脚
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-9, 8, 8, 17);
+            ctx.fillRect(1, 8, 8, 17);
+            // 胴体（黒装束）
+            ctx.fillStyle = '#1c1917';
+            ctx.beginPath();
+            ctx.roundRect(-12, -6, 24, 16, 3);
+            ctx.fill();
+            // 腕
+            ctx.fillStyle = '#111827';
+            ctx.fillRect(-20, -4, 9, 13);
+            ctx.fillRect(11, -4, 9, 13);
+            // 頭（全面マスク）
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath(); ctx.arc(0, -15, 12, 0, Math.PI * 2); ctx.fill();
+            // 目スリット（強敵は赤目）
+            ctx.fillStyle = isStrong ? '#ef4444' : '#9ca3af';
+            ctx.beginPath(); ctx.rect(-7, -17, 14, 3.5); ctx.fill();
+            // 苦無（ナイフ）
+            ctx.save();
+            ctx.translate(isStrong ? 16 : 14, -3);
+            ctx.rotate(-0.35);
+            ctx.fillStyle = '#94a3b8';
+            ctx.beginPath();
+            ctx.moveTo(0, -14); ctx.lineTo(2, 0); ctx.lineTo(-2, 0); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#374151';
+            ctx.fillRect(-3.5, 0, 7, 5);
+            ctx.restore();
         }
+
         ctx.restore();
 
-        const color = type === 'player' ? '#06b6d4' : (type === 'boss' ? '#dc2626' : '#e11d48');
-        const glowColor = type === 'player' ? '#22d3ee' : (type === 'boss' ? '#ef4444' : '#f43f5e');
-        const dist = type === 'boss' ? 180 : 110;
-
-        for(let i=0; i<bld; i++) {
-            const a = ang + (i*Math.PI*2/bld);
-            const bx = x + Math.cos(a)*dist - camera.x, by = y + Math.sin(a)*dist - camera.y;
-            ctx.save(); ctx.translate(bx, by); ctx.rotate(a + Math.PI/2);
-            ctx.beginPath(); ctx.arc(0, 0, 22, 0.1*Math.PI, 0.9*Math.PI); ctx.arc(0, 12, 28, 0.8*Math.PI, 0.2*Math.PI, true); ctx.closePath();
-            ctx.fillStyle = color; ctx.shadowBlur = 20; ctx.shadowColor = glowColor; ctx.fill();
-            ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(0, 2, 14, 0.2*Math.PI, 0.8*Math.PI); ctx.arc(0, 10, 20, 0.7*Math.PI, 0.3*Math.PI, true); ctx.closePath(); ctx.fill();
-            ctx.restore();
+        // 刀（カタナ）を周回させる
+        if (bld > 0) {
+            const dist = type === 'boss' ? 180 : 110;
+            for (let i = 0; i < bld; i++) {
+                const a = ang + (i * Math.PI * 2 / bld);
+                const bx = x + Math.cos(a) * dist - camera.x;
+                const by = y + Math.sin(a) * dist - camera.y;
+                drawKatana(bx, by, a, type);
+            }
         }
     }
 
-    // メイン描画ループ
+    // ===== メイン描画ループ =====
     function loop() {
         frameTime++;
-        ctx.fillStyle = '#020617'; ctx.fillRect(0,0,w,h);
-        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
-        
-        let offsetX = -(camera.x % 120); if (offsetX > 0) offsetX -= 120;
-        let offsetY = -(camera.y % 120); if (offsetY > 0) offsetY -= 120;
-        for(let x = offsetX; x < w; x+=120) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
-        for(let y = offsetY; y < h; y+=120) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
-        
+
+        // 背景（畳）
+        drawBackground();
+
         if (gameState === 'start') {
-            camera.x = player.x - w/2; camera.y = player.y - h/2;
-            player.bladeAngle += 0.02;
-            drawChar(player.x, player.y, player.r, 'player', player.blades, player.bladeAngle);
+            camera.x = 0; camera.y = 0;
+            player.bladeAngle += 0.025;
+
+            // ボス（奥中央）
+            drawChar(w * 0.60, h * 0.48, 75, 'boss', 0, 0);
+
+            // ライバル（奥左）
+            ctx.save();
+            ctx.translate(w * 0.27, h * 0.50); ctx.scale(0.78, 0.78); ctx.translate(-w * 0.27, -h * 0.50);
+            drawChar(w * 0.27, h * 0.50, 28, 'rival', 4, frameTime * -0.05);
+            ctx.restore();
+
+            // 敵×3（右側）
+            [[w*0.68, h*0.57, 0.88], [w*0.77, h*0.61, 0.93], [w*0.73, h*0.67, 0.97]].forEach(([ex, ey, es]) => {
+                ctx.save();
+                ctx.translate(ex, ey); ctx.scale(es, es); ctx.translate(-ex, -ey);
+                drawChar(ex, ey, 20, 'normal', 0, 0);
+                ctx.restore();
+            });
+
+            // 主人公（手前左、やや大きく）
+            ctx.save();
+            ctx.translate(w * 0.20, h * 0.70); ctx.scale(1.3, 1.3); ctx.translate(-w * 0.20, -h * 0.70);
+            drawChar(w * 0.20, h * 0.70, player.r, 'player', player.blades, player.bladeAngle);
+            ctx.restore();
         } else {
-            gems.forEach(g => { ctx.fillStyle = g.gold ? '#fbbf24' : '#38bdf8'; ctx.beginPath(); ctx.arc(g.x-camera.x, g.y-camera.y, g.gold?8:4, 0, Math.PI*2); ctx.fill(); if(g.gold) { ctx.shadowBlur=15; ctx.shadowColor='#fbbf24'; ctx.fill(); ctx.shadowBlur=0; } });
-            particles.forEach(p => { ctx.fillStyle = p.c; ctx.fillRect(p.x-camera.x, p.y-camera.y, 4, 4); });
-            
+            // ジェム描画
+            gems.forEach(g => {
+                const gx = g.x - camera.x, gy = g.y - camera.y;
+                if (g.gold) {
+                    ctx.shadowBlur = 18; ctx.shadowColor = '#fbbf24';
+                    ctx.fillStyle = '#fbbf24';
+                    // 菱形
+                    ctx.beginPath();
+                    ctx.moveTo(gx, gy - 9); ctx.lineTo(gx + 6, gy); ctx.lineTo(gx, gy + 9); ctx.lineTo(gx - 6, gy);
+                    ctx.closePath(); ctx.fill();
+                    ctx.shadowBlur = 0;
+                } else {
+                    ctx.shadowBlur = 10; ctx.shadowColor = '#60a5fa';
+                    ctx.fillStyle = '#93c5fd';
+                    ctx.beginPath(); ctx.arc(gx, gy, 5, 0, Math.PI * 2); ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            });
+
+            // パーティクル
+            particles.forEach(p => {
+                ctx.fillStyle = p.c;
+                ctx.globalAlpha = p.life / 30;
+                ctx.fillRect(p.x - camera.x - 2, p.y - camera.y - 2, 5, 5);
+            });
+            ctx.globalAlpha = 1;
+
+            // 敵・ライバル・ボス
             enemies.forEach(e => drawChar(e.x, e.y, e.r, e.type, 0, 0));
-            rivals.forEach(r => drawChar(r.x, r.y, r.r, 'rival', r.blades, r.angle));
-            
-            if(gameState === 'won') {
+            rivals.forEach(rv => drawChar(rv.x, rv.y, rv.r, 'rival', rv.blades, rv.angle));
+
+            if (gameState === 'won') {
                 ctx.fillStyle = '#fbbf24'; ctx.shadowBlur = 15; ctx.shadowColor = '#fbbf24';
-                for(let i=0; i<25; i++) {
-                    let gx = player.x + Math.cos(i*0.5 + frameTime*0.01) * (200 + Math.sin(i*2)*80);
-                    let gy = player.y + Math.sin(i*0.5 + frameTime*0.01) * (200 + Math.cos(i*2)*80);
-                    ctx.beginPath(); ctx.arc(gx - camera.x, gy - camera.y, 8, 0, Math.PI*2); ctx.fill();
+                for (let i = 0; i < 25; i++) {
+                    const gx = player.x + Math.cos(i * 0.5 + frameTime * 0.01) * (200 + Math.sin(i * 2) * 80);
+                    const gy = player.y + Math.sin(i * 0.5 + frameTime * 0.01) * (200 + Math.cos(i * 2) * 80);
+                    ctx.beginPath(); ctx.arc(gx - camera.x, gy - camera.y, 8, 0, Math.PI * 2); ctx.fill();
                 }
                 ctx.shadowBlur = 0;
-                player.bladeAngle -= 0.11; 
-            } else if(boss) {
+                player.bladeAngle -= 0.11;
+            } else if (boss) {
                 drawChar(boss.x, boss.y, boss.r, 'boss', boss.blades, boss.angle);
             }
-            
+
             drawChar(player.x, player.y, player.r, 'player', player.blades, player.bladeAngle);
-            update(); 
+            update();
         }
 
         requestAnimationFrame(loop);
     }
-    
-    // ループ開始
+
     requestAnimationFrame(loop);
 });
 </script>
