@@ -282,12 +282,28 @@ window.addEventListener("load", function() {
         if(boss) {
             const d = Math.hypot(player.x-boss.x, player.y-boss.y);
             boss.x += (player.x-boss.x)/d * 2.5; boss.y += (player.y-boss.y)/d * 2.5; boss.angle += 0.05;
-            for(let bj=0; bj<boss.blades; bj++) {
-                const ba = boss.angle + (bj*Math.PI*2/boss.blades);
-                if(Math.hypot(boss.x+Math.cos(ba)*180 - player.x, boss.y+Math.sin(ba)*180 - player.y) < player.r+15) endGame('lost', '魔王の圧倒的な力に砕かれた...');
+            // ボス刃ループ: 体当たり判定 + 剣vs剣衝突判定
+            for(let bj=boss.blades-1; bj>=0; bj--) {
+                const ba = boss.angle + (bj*Math.PI*2/Math.max(1,boss.blades));
+                const bbx = boss.x+Math.cos(ba)*180, bby = boss.y+Math.sin(ba)*180;
+                if(Math.hypot(bbx - player.x, bby - player.y) < player.r+15) endGame('lost', '魔王の圧倒的な力に砕かれた...');
+                // 剣クラッシュ: プレイヤー刃がボス刃に当たる
+                let clashed = false;
+                for(let pj=player.blades-1; pj>=0 && !clashed; pj--) {
+                    const pa = player.bladeAngle + (pj*Math.PI*2/Math.max(1,player.blades));
+                    const pbx = player.x+Math.cos(pa)*110, pby = player.y+Math.sin(pa)*110;
+                    if(Math.hypot(pbx-bbx, pby-bby) < 28) {
+                        boss.hp -= 8; boss.blades--; player.blades--;
+                        bossFill.style.width = (boss.hp/boss.max*100) + '%';
+                        const mx=(pbx+bbx)/2, my=(pby+bby)/2;
+                        for(let k=0;k<6;k++) particles.push({x:mx,y:my,vx:(Math.random()-0.5)*16,vy:(Math.random()-0.5)*16,life:25,c:k%2?'#fbbf24':'#ef4444'});
+                        clashed = true;
+                    }
+                }
             }
+            // プレイヤー刃がボス本体に直接当たる（近接追加ダメージ）
             for(let pj=0; pj<player.blades; pj++) {
-                const pa = player.bladeAngle + (pj*Math.PI*2/player.blades);
+                const pa = player.bladeAngle + (pj*Math.PI*2/Math.max(1,player.blades));
                 const pbx = player.x+Math.cos(pa)*110, pby = player.y+Math.sin(pa)*110;
                 if(Math.hypot(pbx - boss.x, pby - boss.y) < boss.r+20) {
                     boss.hp -= 0.3; bossFill.style.width = (boss.hp/boss.max*100) + '%';
